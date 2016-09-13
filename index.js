@@ -10,25 +10,21 @@ var url = 'mongodb://localhost:27017/myproject';
 var authors, artworks;
 
 function insertArtwork(artwork, db, callback) {
-  // Get the documents collection
-
-  // Insert some documents
+  // Insert artworks and call back
   artworks.insert(artwork, {}, callback);
 }
 
 
 function insertAuthors(artwork, db, callback) {
-  // Get the documents collection
-  // console.log('will insert author');
-  // Insert some documents
+  // Insert all related authors
   authors.insert(artwork._source.ua.authors, {}, callback);
-  // console.log('inserted authors');
 }
 
 function onNode(artwork, db, callback) {
 	if (index % 100 === 0) {
 		console.log('on node', index);
 	}
+	// chaining the two insert operations
 	async.waterfall([
 		function(cback1) {
 			insertArtwork(artwork, db, cback1);
@@ -66,6 +62,6 @@ async.waterfall([
 			})
 	}
 ], function(err, db) {
-	console.log('done, err: ', err);
+	console.log('done, errors: ', err);
 	db.close();
 })
