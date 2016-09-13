@@ -11,7 +11,11 @@ var authors, artworks;
 
 function insertArtwork(artwork, db, callback) {
   // Insert artworks and call back
-  artworks.insert(artwork, {}, callback);
+
+  var artworkSimplified = artwork.ua;
+  artworkSimplified._id = artwork._id;
+
+  artworks.insert(artworkSimplified, {}, callback);
 }
 
 
@@ -37,17 +41,17 @@ function onNode(artwork, db, callback) {
 
 async.waterfall([
 	function(callback) {
+		console.log('connecting');
 		MongoClient.connect(url, callback);
 	},
 	function(db, callback) {
-		console.log('connecting');
 		db.createCollection('authors', {}, callback);
   		artworks = db.collection('documents');
   		authors = db.collection('authors');
 	},
 	function (db ,callback) {
 		console.log('starting to feed data');
-		oboe(fs.createReadStream('./input/artworks-all.json'))
+		oboe(fs.createReadStream('./data/artworks-all.json'))
 			.node('![*]', function(node) {
 				index++;
 				onNode(node, db, function(err) {
