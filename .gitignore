@@ -2,3 +2,4 @@ config.sh
 cache
 data
 .DS_Store
+node_modules
