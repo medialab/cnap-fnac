@@ -1,3 +1,4 @@
 config.sh
 cache
 data
+.DS_Store
