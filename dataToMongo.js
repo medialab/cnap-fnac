@@ -7,12 +7,15 @@ var index = 0; // control index
 var url = 'mongodb://localhost:27017/myproject';
 var objectsToProcess = []; // list of json objects to process
 
+var AUTHOR_COLLECTION = 'Author';
+var ARTWORK_COLLECTION = 'Artwork';
+
 /**
  * Format and insert an artwork's array of authors objects in authors mongo collection
  */
 function insertAuthors(artwork, db, callback) {
     var authors = artwork._source.ua.authors;
-    db.collection('authors').insert(authors,  function(err) {
+    db.collection(AUTHOR_COLLECTION).insert(authors,  function(err) {
     	// not catching errors because possible dupkeys that we don't care about
     	callback(null);
     });
@@ -24,7 +27,7 @@ function insertAuthors(artwork, db, callback) {
 function insertArtwork(artwork, db, callback) {
     var artworkSimplified = artwork._source.ua;
     artworkSimplified._id = artwork._id;
-    db.collection('artworks').insert(artworkSimplified, function(err){
+    db.collection(ARTWORK_COLLECTION).insert(artworkSimplified, function(err){
     	// not catching errors because possible dupkeys that we don't care about
     	callback(null);
     });
@@ -69,11 +72,11 @@ function dataToMongo() {
             async.waterfall([
                 function(cback1) {
                     console.log('creating authors collections');
-                    db.createCollection('authors', {}, cback1);
+                    db.createCollection(AUTHOR_COLLECTION, {}, cback1);
                 },
                 function(col, cback2) {
                     console.log('creating artworks collections');
-                    db.createCollection('artworks', {}, cback2);
+                    db.createCollection(ARTWORK_COLLECTION, {}, cback2);
                 }
             ], function(err, collection) {
                 console.log('collections (re) created, errors: ', err);
@@ -81,11 +84,11 @@ function dataToMongo() {
             });
         },
         function(db, callback) {
-            console.log('clearing collections');
-            var authors = db.collection('authors');
+            console.log('cleaning collections');
+            var authors = db.collection(AUTHOR_COLLECTION);
             // clear previous documents
             authors.removeMany();
-            var artworks = db.collection('artworks');
+            var artworks = db.collection(ARTWORK_COLLECTION);
             // clear previous documents
             artworks.removeMany();
             callback(null, db);
