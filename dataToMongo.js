@@ -16,15 +16,19 @@ var MEDIA_COLLECTION = 'Media';
  */
 function insertMedias(artwork, db, callback) {
     var medias = artwork._source.ua.medias;
-    if (medias !== undefined) {
-        medias.forEach(function(media) {
-            media.artwork_id = artwork._id;
-        });
-        db.collection(MEDIA_COLLECTION).insert(medias, function(err) {
+    async.mapSeries(medias, function(media, mediaCb) {
+        db.collection(MEDIA_COLLECTION).updateOne({_id: media._id}, {
+            $set: media,
+            $addToSet: {artworks: artwork._id}
+        }, {
+            upsert: true
+        }).then(function(err, res) {
             // not catching errors because possible dupkeys that we don't care about
-            callback(null);
+            mediaCb(null);
         });
-    } else callback(null);
+    }, function(err) {
+        callback(err);
+    });
 }
 
 /**
@@ -32,9 +36,18 @@ function insertMedias(artwork, db, callback) {
  */
 function insertAuthors(artwork, db, callback) {
     var authors = artwork._source.ua.authors;
-    db.collection(AUTHOR_COLLECTION).insert(authors,  function(err) {
-    	// not catching errors because possible dupkeys that we don't care about
-    	callback(null);
+    async.mapSeries(authors, function(author, authorCb) {
+        db.collection(AUTHOR_COLLECTION).updateOne({_id: author._id}, {
+            $set: author,
+            $addToSet: {artworks: artwork._id}
+        }, {
+            upsert: true
+        }).then(function(err, res) {
+            // not catching errors because possible dupkeys that we don't care about
+            authorCb(null);
+        });
+    }, function(err) {
+        callback(err);
     });
 }
 
@@ -44,6 +57,7 @@ function insertAuthors(artwork, db, callback) {
 function insertArtwork(artwork, db, callback) {
     // un-nest artwork main information
     var artworkSimplified = artwork._source.ua.artwork;
+    // store medias as an array of ids instead of complete objects
     artworkSimplified.medias = artwork._source.ua.medias ? 
         artwork._source.ua.medias
         .map(function(media) {
