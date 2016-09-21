@@ -7,29 +7,12 @@ var index = 0; // control index
 var url = 'mongodb://localhost:27017/myproject';
 var objectsToProcess = []; // list of json objects to process
 
-var AUTHOR_COLLECTION = 'Author';
-var ARTWORK_COLLECTION = 'Artwork';
-var MEDIA_COLLECTION = 'Media';
-
-/**
- * Format and insert an artwork's array of media objects in media mongo collection
- */
-function insertMedias(artwork, db, callback) {
-    var medias = artwork._source.ua.medias;
-    if (medias !== undefined) {
-        db.collection(MEDIA_COLLECTION).insert(medias, function(err) {
-            // not catching errors because possible dupkeys that we don't care about
-            callback(null);
-        });
-    } else callback(null);
-}
-
 /**
  * Format and insert an artwork's array of authors objects in authors mongo collection
  */
 function insertAuthors(artwork, db, callback) {
     var authors = artwork._source.ua.authors;
-    db.collection(AUTHOR_COLLECTION).insert(authors,  function(err) {
+    db.collection('authors').insert(authors,  function(err) {
     	// not catching errors because possible dupkeys that we don't care about
     	callback(null);
     });
@@ -41,7 +24,7 @@ function insertAuthors(artwork, db, callback) {
 function insertArtwork(artwork, db, callback) {
     var artworkSimplified = artwork._source.ua;
     artworkSimplified._id = artwork._id;
-    db.collection(ARTWORK_COLLECTION).insert(artworkSimplified, function(err){
+    db.collection('artworks').insert(artworkSimplified, function(err){
     	// not catching errors because possible dupkeys that we don't care about
     	callback(null);
     });
@@ -58,14 +41,11 @@ function populateDbWithArtwork(artwork, db, callback) {
     // chaining the two insert operations
     async.waterfall([
         function(cback1) {
-            insertAuthors(artwork, db, cback1);
+            insertArtwork(artwork, db, cback1);
         },
         function(cback2) {
-            insertMedias(artwork, db, cback2);
-        },
-        function(cback3) {
-            insertArtwork(artwork, db, cback3);
-        },
+            insertAuthors(artwork, db, cback2);
+        }
     ], function(err) {
         if (index % 10000 === 0) {
             console.log('done populating with artwork n°%s', index);
@@ -88,16 +68,12 @@ function dataToMongo() {
             // chaining the two collections creation operations
             async.waterfall([
                 function(cback1) {
-                    console.log('creating Media collection');
-                    db.createCollection(MEDIA_COLLECTION, {}, cback1);
+                    console.log('creating authors collections');
+                    db.createCollection('authors', {}, cback1);
                 },
                 function(col, cback2) {
-                    console.log('creating Author collection');
-                    db.createCollection(AUTHOR_COLLECTION, {}, cback2);
-                },
-                function(col, cback3) {
-                    console.log('creating Artwork collection');
-                    db.createCollection(ARTWORK_COLLECTION, {}, cback3);
+                    console.log('creating artworks collections');
+                    db.createCollection('artworks', {}, cback2);
                 }
             ], function(err, collection) {
                 console.log('collections (re) created, errors: ', err);
@@ -105,14 +81,11 @@ function dataToMongo() {
             });
         },
         function(db, callback) {
-            console.log('cleaning collections');
-            var medias = db.collection(MEDIA_COLLECTION);
-            // clear previous documents
-            medias.removeMany();
-            var authors = db.collection(AUTHOR_COLLECTION);
+            console.log('clearing collections');
+            var authors = db.collection('authors');
             // clear previous documents
             authors.removeMany();
-            var artworks = db.collection(ARTWORK_COLLECTION);
+            var artworks = db.collection('artworks');
             // clear previous documents
             artworks.removeMany();
             callback(null, db);
