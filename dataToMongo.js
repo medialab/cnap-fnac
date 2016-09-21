@@ -17,6 +17,9 @@ var MEDIA_COLLECTION = 'Media';
 function insertMedias(artwork, db, callback) {
     var medias = artwork._source.ua.medias;
     if (medias !== undefined) {
+        medias.forEach(function(media) {
+            media.artwork_id = artwork._id;
+        });
         db.collection(MEDIA_COLLECTION).insert(medias, function(err) {
             // not catching errors because possible dupkeys that we don't care about
             callback(null);
@@ -39,7 +42,22 @@ function insertAuthors(artwork, db, callback) {
  * Format and insert artwork object in artworks mongo collection
  */
 function insertArtwork(artwork, db, callback) {
-    var artworkSimplified = artwork._source.ua;
+    // un-nest artwork main information
+    var artworkSimplified = artwork._source.ua.artwork;
+    artworkSimplified.medias = artwork._source.ua.medias ? 
+        artwork._source.ua.medias
+        .map(function(media) {
+            return media._id;
+        })
+        : [];
+    // store authors as an array of ids instead of complete objects
+    artworkSimplified.authors = artwork._source.ua.authors ? 
+        artwork._source.ua.authors
+        .map(function(author) {
+            return author._id;
+        })
+        : [];
+    // keep top-level native artwork id
     artworkSimplified._id = artwork._id;
     db.collection(ARTWORK_COLLECTION).insert(artworkSimplified, function(err){
     	// not catching errors because possible dupkeys that we don't care about
