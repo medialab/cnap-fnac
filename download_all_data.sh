@@ -6,7 +6,7 @@ if [ ! -s config.sh ] || [ -z "$SERVERROOT" ]; then
   exit 1
 fi
 
-mkdir -p cache
+mkdir -p cache data db
 function escapeit { perl -e 'use URI::Escape; print uri_escape shift();print"\n"' "$1" | sed 's/\s/_/g'; }
 function cachedcurl {
   url="$SERVERROOT/$VAULT/$1"
@@ -28,8 +28,6 @@ function cachedcurl {
     fi
   fi
 }
-
-mkdir -p data
 
 total=$(cachedcurl "artworks?size=0" | python -m json.tool | grep '"totalCount"' | sed 's/[^0-9]//g')
 echo "RESULTS to collect: $total" 1>&2

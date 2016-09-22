@@ -1,5 +1,6 @@
 config.sh
 cache
 data
-.DS_Store
+db
 node_modules
+.DS_Store
