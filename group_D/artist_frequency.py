@@ -26,7 +26,10 @@ for author in authors.find():
 	}
 	
 	for artwork in artworks.find({"_id":{"$in":author["artworks"]}}):
-		author_info["acquisition_years"].append(artwork["acquisition_year"])
+		if int(artwork["acquisition_year"])!=0:
+			author_info["acquisition_years"].append(artwork["acquisition_year"])
+		else:
+			print "0 acquisition_year avoided"
 		birth=rdate.findall(artwork["authors_birth_death"])
 		if birth:
 			for g in birth:
