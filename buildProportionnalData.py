@@ -74,6 +74,7 @@ colonel
 match_war = re.compile(ur'(%s)' % "|".join(keywords.split("\n")), re.I)
 authors = {}
 
+nat_codes = {}
 def extract_natcode(nat):
     n = nat.lower()
     if "naissance" in n:
@@ -83,7 +84,11 @@ def extract_natcode(nat):
     nocents = u"aaaaeeeeiiiioooouuuunc------";
     for i,c in enumerate(accents):
         n = n.replace(c, nocents[i])
-    return n[0:3]
+    n = n[0:3]
+    if n not in nat_codes:
+        nat_codes[n] = 0
+    nat_codes[n] += 1
+    return n
 
 toviz_fields = ["_id", "acquisition_year", "match_war", "is_command"]
 with open("artworks_viz_war.csv", "w") as f:
@@ -106,10 +111,29 @@ with open("artworks_viz_war.csv", "w") as f:
             if not a["acquisition_year"] in authors[aid]["years"]:
                 authors[aid]["years"][a["acquisition_year"]] = 0
             authors[aid]["years"][a["acquisition_year"]] += 1
+            a["decenial"] = str(a["acquisition_year"])[0:3]
+            if not "decenials" in authors[aid]:
+                authors[aid]["decenials"] = {}
+            if not a["decenial"] in authors[aid]["decenials"]:
+                authors[aid]["decenials"][a["decenial"]] = 0
+            authors[aid]["decenials"][a["decenial"]] += 1
+            if not "total" in authors[aid]:
+                authors[aid]["total"] = 0
+            authors[aid]["total"] += 1
 
 with open("authors_years.csv", "w") as f:
     print >> f, "year,artworks,name,gender,nationality,nat_code"
     for aid, aut in authors.items():
         for y, val in aut["years"].items():
+            if y == "0": continue
             print >> f, ",".join([format_csv(format_field(el)) for el in [y, val, aut["name"], aut["gender"], aut["nationality"], aut["nat_code"]]])
+
+with open("authors_decenials.csv", "w") as f:
+    print >> f, "decenial,artworks,name,gender,nationality,nat_code"
+    for aid, aut in authors.items():
+        if not aut["nat_code"] or aut["nat_code"] == "fra": continue
+        if nat_codes[aut["nat_code"]] < 25: continue
+        for y, val in aut["decenials"].items():
+            if y == "0": continue
+            print >> f, ",".join([format_csv(format_field(el)) for el in [y+"0", val, aut["name"], aut["gender"], aut["nationality"], aut["nat_code"]]])
 
