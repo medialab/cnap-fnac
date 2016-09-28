@@ -55,14 +55,14 @@ for artwork in artworks:
 
 	artwork_info={
 		"title":artwork["title_list"],
-		"author(s)":artwork["authors_list"],
+		"author":artwork["authors_list"],
 		"creation_year": None,
 		"acquisition_year": int(artwork["acquisition_year"]) if artwork["acquisition_year"]!=0 else None,
 		"exhibition_dates":[],
 		"transfert_dates":[],
 		"deposit_dates":[]
 	}
-	
+
 	if "expositions" in artwork:
 		expositions=artwork["expositions"].replace("<ul>","")
 		expositions=expositions.replace("</ul>","")
@@ -86,12 +86,12 @@ for artwork in artworks:
 		depot=[int(g[0]) for g in rdate.findall(artwork["localisation_if_deposit"])]
 		if depot:
 			artwork_info["deposit_dates"].append(max(depot))
-				
+
 	dates_weighted={}
 	dates=sorted([artwork_info["creation_year"],artwork_info["acquisition_year"]]+artwork_info["exhibition_dates"]+artwork_info["transfert_dates"]+artwork_info["deposit_dates"])
 	for k,g in itertools.groupby(dates,key=lambda e:e):
 		dates_weighted[k]=len(list(g))
-	artwork_info["dates_weighted"]=dates_weighted	
+	artwork_info["dates_weighted"]=dates_weighted
 	artworks_info.append(artwork_info)
 
 
@@ -100,7 +100,7 @@ with open("er_artworks_frequency.json","w") as f:
 
 
 # Group artworks by artists :
-# for each artwork 
+# for each artwork
 # get date birth death "authors_birth_death"
 # get date_achat "acquisition_year"
 # get dates expos "expositions" / "exhibitions_history"

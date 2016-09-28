@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+  svg {
+    font-size: 9px;
+    font-family: sans-serif;
+  }
+  path {
+    stroke: black;
+    opacity: 1;
+    stroke-width: 1;
+    fill: none;
+  }
+  .controls {
+    position: fixed;
+    top: 50px;
+    left: 50px;
+  }
+</style>
+
+<body>
+
+  <div class="controls">
+    <!-- <input name="updateButton" type="button" value="without" onclick="drawCurves(data, 'event_sequence_without_0');" /> -->
+    <!-- <input name="updateButton" type="button" value="with" onclick="drawCurves(data, 'event_sequence_with_0');" /> -->
+  </div>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.10.1/lodash.min.js"></script>
+<script>
+  var url = "../er_artworks_frequency.json";
+
+  var margin = {top: 30, right: 40, bottom: 30, left: 50},
+    width = 1900 - margin.left - margin.right,
+    height = 1080*2 - margin.top - margin.bottom;
+
+  var c20c = d3.scale.category20c();
+  // var x = d3.time.scale().range([0, width]);
+
+  var svg = d3.select("body")
+    .append("svg")
+      .attr("width", width + margin.left + margin.right)
+      .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+      .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+  var minYear = 1970;
+  var maxYear = 2017;
+
+  var x = d3.scale.linear().domain([1970, 2017]).range([0,600]);
+  var y = d3.scale.linear().domain([0, 800]).range([height,0]);
+
+  var lineHeight = 12;
+
+  function label(d,i){
+    return d["author"] + ' ('+d["creation_year"] +')' +' — ' + d.title
+  }
+
+  d3.json(url, function (json) {
+
+
+    data = _(json)
+      .sortByAll(['author', 'creation_year'])
+      .value();
+
+    console.log(data);
+
+
+    var work = svg
+      .selectAll(".work")
+      .data(data)
+      .enter().append('g').attr("class", "work")
+
+      for (var i = maxYear; i >= minYear; i--) {
+        svg.append('line')
+            .attr('x1', x(i))
+            .attr('y1', 0)
+            .attr('x2', x(i))
+            .attr('y2', height)
+            .style('stroke', 'grey')
+            .style('opacity', 0.2);
+      }
+
+      work.append("text")
+        .attr("x", 600)
+        .attr("y", function(d,i) { return i*lineHeight + 5 ; })
+        .text(label)
+
+      work.append('line')
+        .attr('x1', function(d){ return x(d.creation_year) })
+        .attr('y1', function(d,i){ return i*lineHeight; })
+        .attr('x2', function(d){ return x(d.acquisition_year) })
+        .attr('y2', function(d,i){ return i*lineHeight; })
+        .style('stroke', 'gold')
+        .attr("stroke-width", lineHeight  * 0.5)
+        .append("svg:title")
+        .text(label);
+
+      work.append('circle')
+          .attr('cx', function(d,i){ return x(d.creation_year) })
+          .attr('cy', function(d,i){ return i*lineHeight})
+          .attr('r', 5)
+          .style('fill', 'salmon')
+          .text(label)
+
+
+  });
+</script>
+</body>
