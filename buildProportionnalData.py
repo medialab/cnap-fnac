@@ -90,10 +90,11 @@ def extract_natcode(nat):
     nat_codes[n] += 1
     return n
 
-toviz_fields = ["_id", "acquisition_year", "match_war", "is_command"]
+toviz_fields = ["_id", "acquisition_year", "match_war", "is_command", "title_notice", "type"]
 with open("artworks_viz_war.csv", "w") as f:
     print >> f, ",".join(toviz_fields)
     for a in data:
+        a["title_notice"] = a["title_notice"].decode("utf-8")
         a["match_war"] = match_war.search(a["title_notice"]) is not None
         a["is_command"] = a.get("acquisition_mode", "") == "Achat par commande"
         print >> f, csv_line(a, toviz_fields)
