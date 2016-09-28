@@ -3,4 +3,5 @@ cache
 data
 db
 node_modules
+*.json
 .DS_Store
