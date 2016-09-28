@@ -90,7 +90,7 @@ with open("artworks_viz_war.csv", "w") as f:
     print >> f, ",".join(toviz_fields)
     for a in data:
         a["match_war"] = match_war.search(a["title_notice"]) is not None
-        a["is_command"] = a.get("acquisition_mode", "") == "Achat sur commande"
+        a["is_command"] = a.get("acquisition_mode", "") == "Achat par commande"
         print >> f, csv_line(a, toviz_fields)
         for aid in a["authors"].split("|"):
             if aid not in authors:
