@@ -3,6 +3,7 @@ cache
 data
 db
 node_modules
+*.json
 .DS_Store
 group_D/*/*.json
 .DS_Store
