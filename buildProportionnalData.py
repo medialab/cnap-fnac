@@ -74,6 +74,17 @@ colonel
 match_war = re.compile(ur'(%s)' % "|".join(keywords.split("\n")), re.I)
 authors = {}
 
+def extract_natcode(nat):
+    n = nat.lower()
+    if "naissance" in n:
+        if "avant" not in n:
+            n = n.split('(')[1]
+    accents = u"àáäâèéëêìíïîòóöôùúüûñç·/_,:;";
+    nocents = u"aaaaeeeeiiiioooouuuunc------";
+    for i,c in enumerate(accents):
+        n = n.replace(c, nocents[i])
+    return n[0:3]
+
 toviz_fields = ["_id", "acquisition_year", "match_war", "is_command"]
 with open("artworks_viz_war.csv", "w") as f:
     print >> f, ",".join(toviz_fields)
@@ -84,10 +95,11 @@ with open("artworks_viz_war.csv", "w") as f:
         for aid in a["authors"].split("|"):
             if aid not in authors:
                 aut = db["Author"].find_one({"_id": aid})
-                aut["nat_code"] = aut.get("nationality", "")[0:3]
                 aut["name"] = aut.get("name", {}).get("notice", "")
                 aut["gender"] = aut.get("gender", "")
                 aut["nationality"] = aut.get("nationality", "")
+                aut["nat_code"] = extract_natcode(aut["nationality"])
+
                 authors[aid] = aut
             if not "years" in authors[aid]:
                 authors[aid]["years"] = {}
