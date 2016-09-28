@@ -4,6 +4,7 @@
 import re, csv
 from groupEnsemblesAndExport import csv_line, format_csv, format_field
 from pymongo import MongoClient
+import networkx as nx
 
 db = MongoClient("localhost", 27017)["myproject"]
 
@@ -90,6 +91,20 @@ def extract_natcode(nat):
     nat_codes[n] += 1
     return n
 
+def add_node(graph, nat):
+    if not graph.has_node(nat):
+        graph.add_node(nat, total=0)
+    graph.node[nat]["total"] += 1
+
+def add_edge_weight(graph, node1, node2):
+    add_node(graph, node1)
+    add_node(graph, node2)
+    if not graph.has_edge(node1, node2):
+        graph.add_edge(node1, node2, weight=0)
+    graph[node1][node2]['weight'] += 1
+
+G = nx.Graph()
+
 toviz_fields = ["_id", "acquisition_year", "match_war", "is_command", "title_notice", "type"]
 with open("artworks_viz_war.csv", "w") as f:
     print >> f, ",".join(toviz_fields)
@@ -98,6 +113,7 @@ with open("artworks_viz_war.csv", "w") as f:
         a["match_war"] = match_war.search(a["title_notice"]) is not None
         a["is_command"] = a.get("acquisition_mode", "") == "Achat par commande"
         print >> f, csv_line(a, toviz_fields)
+        countries = []
         for aid in a["authors"].split("|"):
             if aid not in authors:
                 aut = db["Author"].find_one({"_id": aid})
@@ -105,7 +121,6 @@ with open("artworks_viz_war.csv", "w") as f:
                 aut["gender"] = aut.get("gender", "")
                 aut["nationality"] = aut.get("nationality", "")
                 aut["nat_code"] = extract_natcode(aut["nationality"])
-
                 authors[aid] = aut
             if not "years" in authors[aid]:
                 authors[aid]["years"] = {}
@@ -121,6 +136,10 @@ with open("artworks_viz_war.csv", "w") as f:
             if not "total" in authors[aid]:
                 authors[aid]["total"] = 0
             authors[aid]["total"] += 1
+            if authors[aid]["nat_code"] and authors[aid]["nat_code"] not in countries:
+                for c in countries:
+                    add_edge_weight(G, c, authors[aid]["nat_code"])
+                countries.append(authors[aid]["nat_code"])
 
 with open("authors_years.csv", "w") as f:
     print >> f, "year,artworks,name,gender,nationality,nat_code"
@@ -138,3 +157,4 @@ with open("authors_decenials.csv", "w") as f:
             if y == "0": continue
             print >> f, ",".join([format_csv(format_field(el)) for el in [y+"0", val, aut["name"], aut["gender"], aut["nationality"], aut["nat_code"]]])
 
+nx.write_gexf(G, "coauthors_countries.gexf")
