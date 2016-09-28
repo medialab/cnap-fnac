@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+  path {
+    stroke: black;
+    opacity: 1;
+    stroke-width: 1;
+    fill: none;
+  }
+  .controls {
+    position: fixed;
+    top: 50px;
+    left: 50px;
+  }
+</style>
+
+<body>
+
+  <div class="controls">
+    <input name="updateButton" type="button" value="without"
+        onclick="drawCurves(data, 'event_sequence_without_0');" />
+    <input name="updateButton" type="button" value="with"
+        onclick="drawCurves(data, 'event_sequence_with_0');" />
+  </div>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script>
+  var url = "artists_profils_sequences.json";
+
+  var margin = {top: 30, right: 40, bottom: 30, left: 50},
+    width = 1920*5 - margin.left - margin.right,
+    height = 1080*4 - margin.top - margin.bottom;
+
+  var c20c = d3.scale.category20c();
+
+  var svg = d3.select("body")
+    .append("svg")
+      .attr("width", width + margin.left + margin.right)
+      .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+      .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+  var x = d3.scale.linear().domain([0, 320]).range([0,width]);
+  var y = d3.scale.linear().domain([0, 800]).range([height,0]);
+
+  var valueline = d3.svg.line()
+    .interpolate("bundle")
+    .x(function(d,i) {return x(i);})
+    .y(function(d) { return y(d); });
+
+  var maxActivity = 0;
+  var maxStep = 0;
+  var data = [];
+
+  function drawCurves(data, dataKey){
+    svg.selectAll("*").remove();
+    data.forEach(function(lineData,lineId) {
+
+
+      var seq = lineData[dataKey];
+
+      if(seq.length > maxStep && lineId != 5) maxStep = seq.length;
+      if(d3.max(seq) > maxActivity) maxActivity = d3.max(seq);
+
+      svg.append("path")
+        .attr("class", "line")
+        .style("stroke", function(d){ return c20c(lineId) })
+        .attr("d", valueline(seq))
+    });
+  }
+  d3.json(url, function (json) {
+    console.log(json.length);
+
+    data = json//.slice(0,100);
+
+    drawCurves(data, 'event_sequence_with_0');
+
+    console.log('maxStep',maxStep);
+    console.log('maxActivity',maxActivity);
+
+  });
+</script>
+</body>
