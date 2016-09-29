@@ -25,9 +25,10 @@ with open("authors_frequency.json","r") as f:
 			filtered_artist_profils.append(
 				{
 				"name": af["name"],
-		        "nationality": af["nationality"], 
-		        "gender": af["gender"], 
-		        "birthdeathdates":af["birthdeathdates"],
+		        #"nationality": af["nationality"], 
+		        #"gender": af["gender"], 
+		        #"birthdeathdates":af["birthdeathdates"],
+		        "author_ids":af["author_ids"],
 				"event_sequence_with_0":[v for k,v in sorted(list(dates_weighted_with_0.iteritems()),key=lambda t:t[0])],
 				"event_sequence_without_0":[v for k,v in sorted(list(af["dates_weighted"].iteritems()),key=lambda t:t[0])],
 				"first_date":[k for k,v in sorted(list(dates_weighted_with_0.iteritems()),key=lambda t:t[0])][0],
