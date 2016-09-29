@@ -5,7 +5,7 @@
   <title>CNAP : Le(s) goût(s) de l'État, l'art et la guerre</title>
   <link href="bootstrap.min.css" rel="stylesheet">
   <link href="navbar-fixed-top.css" rel="stylesheet">
-  <style>.content{  font: 12px Roboto, sans-serif;  padding-top: 6px;  padding-bottom: 6px;  -webkit-column-count: 4; /* Chrome, Safari, Opera */     -moz-column-count: 4; /* Firefox */          column-count: 4;  } .content p{  margin: 3px; padding-left: 6px; } .content .text-muted{ color: #AAA; } .content .text-info{ color: #89A0BB; } .row{margin: auto; padding-top: 60px; margin-bottom: 30px; text-align: center;} .jumbotron h1 { font-size: 44px;} .container {width:90%; margin: auto text-align: center;}</style>
+  <style>.content{  font: 12px Roboto, sans-serif;  padding-top: 6px;  padding-bottom: 6px;  -webkit-column-count: 4; /* Chrome, Safari, Opera */     -moz-column-count: 4; /* Firefox */          column-count: 4;  } .content p{  margin: 3px; padding-left: 6px; } .content .text-muted{ color: #AAA; } .content .text-info{ color: #89A0BB; } .row{margin: auto; padding-top: 60px; margin-bottom: 30px; text-align: center;} .jumbotron h1 { font-size: 44px;} .container {width:90%; margin: auto text-align: center;} h3 {margin-top: 50px!important;}</style>
 </head>
 <body>
 <nav class="navbar navbar-default navbar-fixed-top">
@@ -147,26 +147,43 @@
   </div>
   
   <div id="countries" class="row">
+    <h2>Exploration des pays de naissance d'origine des artistes</h2>
+    <h3>Analyse décenalle par région d'origine</h3>
+    <img src="Breakdown-Artists-Continents-10yrs-Mathematica.png" style="width: 90%"/>
+    <h3>décenalle par région sans la France</h3>
+    <img src="Breakdown-Artists-ContinentsWithoutFrance-10yrs-Mathematica.png" style="width: 90%"/>
     <img src="sankey_nat_decenials_gt_25.png" style="width: 75%"/>
     <img src="spline_nat_decenials_gt_25.png" style="width: 70%"/>
+    <h3>décenalle par pays</h3>
     <img src="Breakdown-Artists-France-Colors10yrs-Mathematica.png" style="width: 90%"/>
+    <h3>décenalle par pays sans la France</h3>
     <img src="Breakdown-Artists-NoFrance-Colors10yrs-Mathematica.png" style="width: 90%"/>
+    <h3>par tranche de 4 ans par pays</h3>
     <img src="Breakdown-NoFrance-4yrs-Mathematica.png" style="width: 90%"/>
   </div>
 
   <div id="network" class="row">
+    <h2>Réseau de proximité des pays au prisme des collaborations internationales</h2>
     <iframe src="http://tools.medialab.sciences-po.fr/manylines/embed#/narrative/18685255-5994-4b9b-b9a3-9500f5315581" width="100%" height="800" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>
   </div>
 
   <div id="images" class="row">
+    <h2>Analyse temporelle au prisme des photos des œuvres</h2>
+    <h3>Les images en temps de guerre</h3>
+    <span style="width:33%; float:left">1870 - 1871</span>
+    <span style="width:33%; float:left">1914 - 1918</span>
+    <span style="width:33%; float:left">1939 - 1944</span>
     <a href="70-71---brightness_median-vs-hue_median.png"><img src="70-71---brightness_median-vs-hue_median.png" style="width: 33%; float: left"/></a>
     <a href="14-18---brightness_median-vs-hue_median.png"><img src="14-18---brightness_median-vs-hue_median.png" style="width: 33%; float: left"/></a>
     <a href="39-44---brightness_median-vs-hue_median.png"><img src="39-44---brightness_median-vs-hue_median.png" style="width: 33%; float: left"/></a>
+    <h3>Luminosité des images à travers le temps</h3>
     <a href="peinture-acquisition_year-vs-brightness-14-18_39-45.png"><img src="peinture-acquisition_year-vs-brightness-14-18_39-45.png" style="width: 85%;"/></a>
+    <h3>Couleur des images à travers le temps</h3>
     <a href="peinture-acquisition_year-vs-hue-14-18_39-45.png"><img src="peinture-acquisition_year-vs-hue-14-18_39-45.png" style="width: 85%;"/></a>
   </div>
 
   <div id="types" class="row">
+    <h2>Analyse temporelle de l'évolution des types d'œuvres</h2>
     <img src="Breakdown-Mode-Combined.png" style="width: 90%"/>
   </div>
 </div>
