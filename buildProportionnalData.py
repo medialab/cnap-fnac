@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8
 
-import re, csv
+import re, csv, json
 from groupEnsemblesAndExport import csv_line, format_csv, format_field
 from pymongo import MongoClient
 import networkx as nx
@@ -91,9 +91,14 @@ def extract_natcode(nat):
     nat_codes[n] += 1
     return n
 
+regions = {}
+with open("countries_regions.json") as f:
+    dat = json.load(f)
+    regions = dict((code, reg) for reg in dat for code in dat[reg])
+
 def add_node(graph, nat):
     if not graph.has_node(nat):
-        graph.add_node(nat, total=0)
+        graph.add_node(nat, total=0, region=regions.get(nat,""))
     graph.node[nat]["total"] += 1
 
 def add_edge_weight(graph, node1, node2):
