@@ -29,11 +29,11 @@
 <script>
   var url = "../er_artworks_frequency.json";
 
-  var margin = {top: 30, right: 40, bottom: 30, left: 50},
+  var margin = {top: 50, right: 40, bottom: 30, left: 50},
     width = 1900 - margin.left - margin.right,
     height = 1080*2 - margin.top - margin.bottom;
 
-  var c20c = d3.scale.category20c();
+  var colors = d3.scale.category10();
   // var x = d3.time.scale().range([0, width]);
 
   var svg = d3.select("body")
@@ -57,9 +57,8 @@
 
   d3.json(url, function (json) {
 
-
     data = _(json)
-      .sortByAll(['author', 'creation_year'])
+      .sortByAll(['creation_year'])
       .value();
 
     console.log(data);
@@ -69,6 +68,13 @@
       .selectAll(".work")
       .data(data)
       .enter().append('g').attr("class", "work")
+      .attr('transform', function(d,i) {
+        var posY = i*lineHeight;
+        var posX = 0;
+        return 'translate(' + posX + ',' + posY + ')';
+      })
+
+      var years = svg.append('g');
 
       for (var i = maxYear; i >= minYear; i--) {
         svg.append('line')
@@ -77,31 +83,99 @@
             .attr('x2', x(i))
             .attr('y2', height)
             .style('stroke', 'grey')
-            .style('opacity', 0.2);
+            .style('opacity', 0.2)
+
+        years.append("text")
+        .attr("x", -25)
+        .attr("y", -x(i)-4)
+        .attr("transform", "rotate("+90+")")
+        .text(i)
+      }
+
+      for (var i = data.length; i >= 0; i--) {
+        svg.append('line')
+            .attr('x1', 0)
+            .attr('y1', i*lineHeight)
+            .attr('x2', width)
+            .attr('y2', i*lineHeight)
+            .style('stroke', 'grey')
+            .style('opacity', 0.2)
       }
 
       work.append("text")
-        .attr("x", 600)
-        .attr("y", function(d,i) { return i*lineHeight + 5 ; })
+        .attr("x", 650)
+        .attr("y", 9 )
         .text(label)
 
       work.append('line')
         .attr('x1', function(d){ return x(d.creation_year) })
-        .attr('y1', function(d,i){ return i*lineHeight; })
+        .attr('y1', lineHeight/2)
         .attr('x2', function(d){ return x(d.acquisition_year) })
-        .attr('y2', function(d,i){ return i*lineHeight; })
+        .attr('y2', lineHeight/2)
         .style('stroke', 'gold')
-        .attr("stroke-width", lineHeight  * 0.5)
+        .attr("stroke-width", lineHeight)
+        .style('opacity', 0.5)
         .append("svg:title")
-        .text(label);
+        .text(label)
 
       work.append('circle')
           .attr('cx', function(d,i){ return x(d.creation_year) })
-          .attr('cy', function(d,i){ return i*lineHeight})
-          .attr('r', 5)
-          .style('fill', 'salmon')
+          .attr('cy', lineHeight/2)
+          .attr('r', lineHeight/2)
+          .style('fill', 'tomato')
+          .style('opacity', .5)
           .text(label)
 
+      var eventsKey = ['deposit_dates','exhibition_dates','transfert_dates'];
+
+      _.forEach(eventsKey, function(key, keyId){
+        console.log(key);
+
+        var r = ((lineHeight)/eventsKey.length);
+
+        var strokew = 3;
+        var posx = strokew/2 + strokew*keyId
+
+        work.selectAll('.'+key).data(function(d){
+          return d[key]
+        }).enter()
+          .append('line')
+          .attr('x1', function(d,i){return x(d) + posx})
+          .attr('y1', 0)
+          .attr('x2', function(d,i){return x(d) + posx})
+          .attr('y2', lineHeight)
+          .style('stroke', colors(keyId))
+          .style('stroke-width', 2 )
+
+        // .append('circle')
+        //   .attr('cx', function(d,i){return x(d) + r*keyId })
+        //   .attr('cy', lineHeight/2 )
+        //   .attr('r', r)
+        //   .style('fill', colors(keyId))
+        //   // .style('stroke-width', 2)
+        //   // .style("fill", "none")
+        //   .text(label)
+
+        var labels = svg.append('g').attr('transform', 'translate(' + keyId*100 + ',' + 0 + ')')
+
+
+        labels.append('circle')
+            .attr('cx', 0)
+            .attr('cy', -lineHeight*3  - 3)
+            .attr('r', 5)
+            .style('fill', colors(keyId));
+
+        labels.append("text")
+          .attr("x", 10)
+          .attr("y", -lineHeight*3)
+          .text(key)
+      })
+
+
+
+      // add deposit_dates
+      // add exhibition_dates
+      // add transfert_dates
 
   });
 </script>
