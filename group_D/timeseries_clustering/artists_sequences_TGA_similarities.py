@@ -1,4 +1,3 @@
-from dtw import dtw
 import json
 import csvkit
 
