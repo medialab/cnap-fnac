@@ -35,8 +35,6 @@ with open("authors_frequency.json","r") as f:
 				"dates_weighted":af["dates_weighted"]
 				}
 			)
-			if len(filtered_artist_profils[-1]["event_sequence_with_0"])>2000:
-				print filtered_artist_profils[-1]
 	#lengths=dict([(nb_event,nb_artist) for (nb_event,nb_artist) in lengths.iteritems() if nb_event>3])
 
 
