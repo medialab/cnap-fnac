@@ -37,7 +37,8 @@ for i in `seq 0 $(($total / $resperpage))`; do
   firstres=$(($i * $resperpage))
   lastres=$(($firstres + $resperpage -1))
   if [ $lastres -gt $total ]; then lastres=$total; fi
-  cachedcurl "artworks?size=$resperpage&from=$firstres&sort=source.artwork._id:asc" > "data/artworks-$firstres-$lastres.json"
+  #cachedcurl "artworks?size=$resperpage&from=$firstres&sort=source.artwork._id:asc" > "data/artworks-$firstres-$lastres.json"
+  cachedcurl "artworks?size=$resperpage&from=$firstres&buster=1" > "data/artworks-$firstres-$lastres.json"
 done
 
 ./assemble_results.py data/artworks-*0*.json > data/artworks-all.json
