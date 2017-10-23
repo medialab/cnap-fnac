@@ -5,6 +5,26 @@ import sys
 
 # /!\ This code is **TAB-INDENTED** /!\
 
+def extract_date(date_field):
+	regex_date = re.compile('(?:(?:([0-9]{1,2})\\s?)?(?:([\\w]+?)\\s?)?([0-9]{4})?-\\s?)?(?:([0-9]{1,2})\\s?)?(?:([\\w]+?)\\s?)?([0-9]{4})')
+	month2number = ('janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre')
+	m = regex_date.match(date_field)
+	if m:
+		end_year = m.group(6)
+		end_month = '00'
+		if m.group(5) is not None:
+			end_month = str(month2number.index(m.group(5))+1) if m.group(5) in month2number else '00'
+		end_day = m.group(4) if m.group(4) is not None else '00'
+		start_year = m.group(3) if m.group(3) is not None else end_year
+		start_month = end_month
+		if m.group(2) is not None:
+			start_month = str(month2number.index(m.group(2))+1) if m.group(2) in month2number else end_month
+		start_day = m.group(1) if m.group(1) is not None else end_day
+		#print(start_year+'-'+start_month+'-'+start_day, end_year+'-'+end_month+'-'+end_day)
+		return [(start_year, start_month, start_day), (end_year, end_month, end_day)]
+	else:
+		return None
+
 def get_list_from_html(field):
 	regex_item = re.compile('<li>(.*?)<\/li>', flags=re.S)
 	tab = regex_item.split(field)
@@ -25,7 +45,7 @@ def extract_expositions(json, csvwriter):
 	regex_place_time = re.compile('(?:(.*)(?:, | : ))?(.*[0-9]{4})?')
 	regex_museum_town = re.compile("(.+?), ?([\\w\\-']+ ?(?:\\(.+?\\))?)$")
 	regex_town_museum = re.compile("([\\w\\-']+ ?(?:\\(.+?\\))?), ?(.+?)$")
-	regex_end_year = re.compile('.*([0-9]{4})$')
+	regex_start_end_year = re.compile('(?:.*([0-9]{4})-)?.*([0-9]{4})$')
 	for item in item_list:
 		#print('ITEM:', item, '$')
 		#try:
@@ -33,7 +53,7 @@ def extract_expositions(json, csvwriter):
 			if m is None:
 				m = regex_title_other_fallback.match(item)
 			if m is None:
-				csvwriter.writerow([item, '', '', '','', ''])
+				csvwriter.writerow([item, '', '', '','', '', ''])
 			else:
 				title = m.group(1)
 			#print(title)
@@ -53,8 +73,17 @@ def extract_expositions(json, csvwriter):
 						else:
 							[town, museum] = [o.group(2), o.group(1)]
 					time = n.group(2)
-					year = regex_end_year.match(time).group(1) if time is not None else ''
-					csvwriter.writerow([item, title, place, museum, town, time, year])
+					[start_date, end_date] = ['', '']
+					if time is not None:
+						tab = extract_date(time)
+						if tab is not None:
+							end_date = str(tab[1][0])+'-'+str(tab[1][1])+'-'+str(tab[1][2])
+							start_date = str(tab[0][0])+'-'+str(tab[0][1])+'-'+str(tab[0][2])
+						#p = regex_start_end_year.match(time)
+						#end_year = p.group(2)
+						#start_year = p.group(1) if p.group(1) is not None else end_year
+					#year = regex_end_year.match(time).group(1) if time is not None else ''
+					csvwriter.writerow([item, title, place, museum, town, time, start_date, end_date])
 				#print(place, time, sep='|')
 		#except:
 		#	print('ITEM:', item, '$')
@@ -93,7 +122,7 @@ c = pymongo.MongoClient()
 cursor = c.myproject.Artwork.find({},field_dict)
 with open(sys.argv[1], 'w') as f:
 	destCSV = csv.writer(f)
-	header = ('Champ brut', 'Titre exposition', "Lieu d'exposition (brut)", "Musée d'exposition", 'Ville du musée', "Date d'exposition", "Année de fin d'exposition")
+	header = ('Champ brut', 'Titre exposition', "Lieu d'exposition (brut)", "Musée d'exposition", 'Ville du musée', "Date d'exposition", "Date de début d'exposition", "Date de fin d'exposition")
 	destCSV.writerow(list(header))
 	for doc in cursor:
 		#filter_fields(doc, field_dict, destCSV)
