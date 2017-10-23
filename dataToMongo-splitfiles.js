@@ -8,6 +8,7 @@ var index = 0; // control index
 var url = 'mongodb://localhost:27017/myproject';
 
 var duplicate_count = 0;
+var other_errors = 0;
 //var objectsToProcess = []; // list of json objects to process
 
 var AUTHOR_COLLECTION = 'Author';
@@ -83,7 +84,14 @@ function insertArtwork(artwork, db, callback) {
     db.collection(ARTWORK_COLLECTION).insert(artworkSimplified, function(err){
     	// not catching errors because possible dupkeys that we don't care about
     	if (err != null) {
-    		duplicate_count++;
+    		//console.log(err.code);
+    		if (err.code == 11000) {
+	    		duplicate_count++;
+	    	}
+	    	else {
+	    		other_errors++;
+	    		console.log(err);
+	    	}
     	}
     	callback(null);
     });
@@ -198,7 +206,7 @@ function dataToMongo() {
             );
         }
     ], function(err, db) {
-    	console.log(duplicate_count+' duplicates found');
+    	console.log(duplicate_count+' duplicates found, '+other_errors+' (other) errors on insertion');
         console.log('done with everything, closing db');
         db.close();
     });
