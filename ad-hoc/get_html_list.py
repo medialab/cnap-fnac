@@ -1,3 +1,5 @@
+import re
+
 def get_list_from_html(field):
 	regex_item = re.compile('<li>(.*?)<\/li>', flags=re.S)
 	tab = regex_item.split(field)
