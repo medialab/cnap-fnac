@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import pymongo
+#import pymongo
 import re
 import csv
 import sys
@@ -66,28 +66,15 @@ def fuzzy_lower_dates(d1, d2):
 	else:
 		return 0.0
 
-def tag_expo_with_folder(json):
-	#folder_dict = {}
-	#opcount = 0
-	#dico_count = 0
-	#for operation in get_list_from_html(json["all_realized_operations_history"]):
-	#	basic_fields = filter_operation_record(operation)
-	#	if basic_fields is not None and basic_fields['additional_data'] is not None:
-	#		if basic_fields['opcode'] == '302' and 'M20' in basic_fields['additional_data']:
-	#			m = re.match('.+ - M20 - (.+)$', basic_fields['additional_data'])
-	#			if m is not None:
-	#				folder_dict[m.group(1)] = ('M20', basic_fields['date'][0:4])
-	#				opcount += 1
-	ope_info = get_from_operation_expo_heuristic_range(json['all_realized_operations_history'], '230E', '221I', 'M20', 0, 0)
-	#print(ope_info)
-	#print(ope_dates)
-	for exposition in get_list_from_html(json['expositions_without_current']):
-		basic_expo = get_expo_title_other(exposition)
-		if basic_expo is not None:
-			#print('Coucou')
-			#dico_count += 1
-			#print(basic_expo['title'])
-			if basic_expo['title'] in ope_info:# and folder_dict[dico['title']][1] in dico['other']:#2nd condition: maybe, maybe not
+def tag_one_expo_with_folder(exposition, ope_info):
+	expo_list = []
+	basic_expo = get_expo_title_other(exposition)
+	if basic_expo is not None:
+		#print('Coucou')
+		#dico_count += 1
+		#print(basic_expo['title'])
+		for folder, heuristics in ope_info.items():
+			if basic_expo['title'] in heuristics:# and folder_dict[dico['title']][1] in dico['other']:#2nd condition: maybe, maybe not
 				place_time_list = get_expo_place_time(basic_expo['other'])
 				for place_time in place_time_list:
 					if place_time is not None and place_time['time'] is not None:
@@ -97,7 +84,8 @@ def tag_expo_with_folder(json):
 						#date alignment
 						max_score = 0.0
 						max_ope = None
-						for ope_date in ope_info[basic_expo['title']]:
+						#print('Dah')					
+						for ope_date in heuristics[basic_expo['title']]:
 							if ope_date[0] != '...':
 								start_date_raw = ope_date[0].split('/')
 								start_date_ope = datetime.date(int(start_date_raw[0]), int(start_date_raw[1]), int(start_date_raw[2]))
@@ -116,8 +104,34 @@ def tag_expo_with_folder(json):
 								max_score = cur_score
 								max_ope = ope_date
 						if max_score > 0.0:
-							print('M20', basic_expo['title'], max_ope[0].replace('/', '-'), start_date_expo.isoformat(), end_date_expo.isoformat(), max_ope[1].replace('/', '-'))
-						
+							#print('M20', basic_expo['title'], max_ope[0].replace('/', '-'), start_date_expo.isoformat(), end_date_expo.isoformat(), max_ope[1].replace('/', '-'))
+							expo_list.append((folder, basic_expo, start_date_expo, end_date_expo, max_score))
+	return expo_list
+
+def tag_expo_with_folder(json, folder_list):
+	#folder_dict = {}
+	#opcount = 0
+	#dico_count = 0
+	#for operation in get_list_from_html(json["all_realized_operations_history"]):
+	#	basic_fields = filter_operation_record(operation)
+	#	if basic_fields is not None and basic_fields['additional_data'] is not None:
+	#		if basic_fields['opcode'] == '302' and 'M20' in basic_fields['additional_data']:
+	#			m = re.match('.+ - M20 - (.+)$', basic_fields['additional_data'])
+	#			if m is not None:
+	#				folder_dict[m.group(1)] = ('M20', basic_fields['date'][0:4])
+	#				opcount += 1
+	ope_info = {}
+	expo_list = []
+	for folder, anchor_ope in folder_list.items():
+		#print(folder)
+		ope_info[folder] = get_from_operation_expo_heuristic_range(get_list_from_html(json['all_realized_operations_history']), anchor_ope[0], anchor_ope[1], folder, 0, 0)
+	#print(ope_info)
+	#print(ope_info)
+	#print(ope_dates)
+	for exposition in get_list_from_html(json['expositions_without_current']):
+		#print('Yah')
+		expo_list += tag_one_expo_with_folder(exposition, ope_info)
+	return expo_list
 				#print(basic_expo['title'], 'M20', ope_info[basic_expo['title']])#folder_dict[basic_expo['title']][0])
 	#		else:
 	#			print(dico['title'],'$',sep='')
@@ -133,7 +147,8 @@ def get_operation_expo_title(operation):
 		return m.group(1)
 
 def get_from_operation_expo_heuristic_range(field, opcode_start, opcode_end, folder_category, year_limit = 0, complete_range = 0):
-	operation_list = get_list_from_html(field)
+	#operation_list = get_list_from_html(field)
+	operation_list = field
 	#print(operation_list)
 	# Order: last operation first
 	in_range = False
@@ -239,15 +254,16 @@ def get_state_range(doc):
 #	sys.exit('Usage: '+sys.argv[0]+' [destinationCSVfile]')
 
 #if __name__ == "main":
-field_dict = {"all_realized_operations_history":1, "expositions_without_current":1}#, "hanging_history":1, "expositions_without_current":1, "expositions":1}
-c = pymongo.MongoClient()
-cursor = c.myproject.Artwork.find({'_id':'150000000030904'},field_dict)#'_id':'150000000030904', 150000000461389
+#field_dict = {"all_realized_operations_history":1, "expositions_without_current":1}#, "hanging_history":1, "expositions_without_current":1, "expositions":1}
+#c = pymongo.MongoClient()
+#cursor = c.myproject.Artwork.find({'_id':'150000000030904'},field_dict)#'_id':'150000000030904', 150000000461389
 #opc = 0
 #dc = 0
-for doc in cursor:
-	#if "all_realized_operations_history" in doc and "expositions_without_current" in doc:
-	#	tag_expo_with_folder(doc)
-	print(get_state_range(doc))
+#folder_list = {'M20':('230E', '221I'), 'M22':('230E', '221I'), 'M25':('230E', '221I'), 'M29':('230E', '221I'), 'M30':('230E', '221I'), 'M32':('230E', '221I'), 'M36':('230E', '221I'), 'M99':('230E', '221I')}#, 'M34':('212I', '213I')
+#for doc in cursor:
+#	if "all_realized_operations_history" in doc and "expositions_without_current" in doc:
+#		print(tag_expo_with_folder(doc, folder_list))
+	#print(get_state_range(doc))
 #print(tu)
 #	opc += tu[0]
 #	dc += tu[1]
