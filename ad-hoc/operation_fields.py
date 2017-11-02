@@ -30,6 +30,8 @@ from expo_fields import *
 #	return {'title':m.group(1).strip(), 'other':m.group(2)}
 
 def filter_operation_record(record):
+	"""Get some basic info about operation, as well as the un-parsed tail.
+	Returns {'date': `string: YYYY/MM/DD`, 'opcode':`string`, 'oplabel':`string`, 'additional_date':`string`}"""
 	rslt = {}
 	regex_basic_fields = re.compile('([0-9]{4}\\/[0-9]{1,2}\\/[0-9]{1,2}) - (.+?) - (.+?)(?: - (.+))?$', flags=re.S)
 	m = regex_basic_fields.match(record)
@@ -56,6 +58,8 @@ def filter_operation_record(record):
 #				print(basic_fields)
 
 def fuzzy_lower_dates(d1, d2):
+	"""Return a fuzzy lower relationship between to dates.
+	Useful for structured exhibition fields vs heuristic exhibitions from operations field range dates matching."""
 	if d1 < d2:
 		return 1.0
 	if d1.year == d2.year:
@@ -67,6 +71,11 @@ def fuzzy_lower_dates(d1, d2):
 		return 0.0
 
 def tag_one_expo_with_folder(exposition, ope_info):
+	"""Tag one exhibition from a structured exhibition field with a category,
+	using an op_info dict.
+	op_info = { 'folder code':`return from get_from_operation_expo_heuristic_range called on that folder`, ... }
+	Returns [(folder, basic_expo, start_date_expo, end_date_expo, max_score), ...],
+	where basic_expo is the dict returned by get_expo_title_other."""
 	expo_list = []
 	basic_expo = get_expo_title_other(exposition)
 	if basic_expo is not None:
@@ -91,12 +100,20 @@ def tag_one_expo_with_folder(exposition, ope_info):
 						for ope_date in heuristics[basic_expo['title']]:
 							if ope_date[0] != '...' and ope_date[0] != '':
 								start_date_raw = ope_date[0].split('/')
+								start_date_raw[1] = '1' if start_date_raw[1] == '00' else start_date_raw[1]
+								start_date_raw[2] = '1' if start_date_raw[2] == '00' else start_date_raw[2]
+								#try:
 								start_date_ope = datetime.date(int(start_date_raw[0]), int(start_date_raw[1]), int(start_date_raw[2]))
+								#except:
+								#	print(start_date_raw)
+								#	raise
 #								if start_date_raw != '' else datetime.date(1,1,1) # typically: didn't catch last expo before it goes to 211I
 							else:
 								start_date_ope = datetime.date(1, 1, 1)
 							if ope_date[1] != '...':
 								end_date_raw = ope_date[1].split('/')
+								end_date_raw[1] = '12' if end_date_raw[1] == '00' else end_date_raw[1]
+								end_date_raw[2] = '28' if end_date_raw[2] == '00' else end_date_raw[2]
 								end_date_ope = datetime.date(int(end_date_raw[0]), int(end_date_raw[1]), int(end_date_raw[2]))
 							else:
 								end_date_ope = datetime.date.today()
@@ -113,6 +130,7 @@ def tag_one_expo_with_folder(exposition, ope_info):
 	return expo_list
 
 def tag_expo_with_folder(json, folder_list):
+	"""Apply tag_one_expo_with_folder on multiple structure exhibitions field records."""
 	#folder_dict = {}
 	#opcount = 0
 	#dico_count = 0
@@ -142,13 +160,13 @@ def tag_expo_with_folder(json, folder_list):
 	#print(folder_dict)
 	#return (opcount, dico_count)
 
-def get_operation_expo_title(operation):
-	regex_operation_title = re.compile('.+ - [MI][0-9]{2} - (.+)$')
-	m = regex_operation_title.match(operation)
-	if m is None:
-		return None
-	else:
-		return m.group(1)
+#def get_operation_expo_title(operation):
+#	regex_operation_title = re.compile('.+ - [MI][0-9]{2} - (.+)$')
+#	m = regex_operation_title.match(operation)
+#	if m is None:
+#		return None
+#	else:
+#		return m.group(1)
 
 def get_from_operation_expo_heuristic_range(field, opcode_start_list, opcode_end_list, opcode_trip_list, folder_category, year_limit = 0, complete_range = 0):
 	#operation_list = get_list_from_html(field)
@@ -186,13 +204,13 @@ def get_from_operation_expo_heuristic_range(field, opcode_start_list, opcode_end
 			#print(range_dates)
 			if title is None:
 				title = ''
-			if (opdict['opcode'] in opcode_start_list and in_start) or (opdict['opcode'] in opcode_end_list and in_end):
-				if opdict['opcode'] in opcode_end_list and in_end and title == current_expo and opdict['opcode'] not in opcode_trip_list:#Narrow the range
+			if opdict['opcode'] not in opcode_trip_list and ((opdict['opcode'] in opcode_start_list and in_start) or (opdict['opcode'] in opcode_end_list and in_end)):
+				if opdict['opcode'] in opcode_end_list and in_end and title == current_expo:#Narrow the range
 					range_dates[title][current_offset][0] = opdict['date']
 				continue
 			#elif opdict['opcode'] not in opcode_start_list and opdict['opcode'] not in opcode_end_list:
 			#	in_end = in_start = False
-			if (opdict['opcode'] in opcode_start_list and in_range) or (opdict['opcode'] in opcode_end_list and not in_range):
+			if (opdict['opcode'] in opcode_start_list and in_range) or (opdict['opcode'] in opcode_end_list and (not in_range or (in_range and not in_start and not in_end))):
 				if opdict['opcode'] in opcode_start_list and in_range:
 					in_end = False
 					start_date = opdict['date']
@@ -208,11 +226,16 @@ def get_from_operation_expo_heuristic_range(field, opcode_start_list, opcode_end
 						range_dates[current_expo][current_offset][0] = start_date
 					#missing_title = True if opdict['opcode'] in opcode_trip_list else False
 					in_start = True if opdict['opcode'] not in opcode_trip_list else False
-					in_range = not in_start
+					in_range = False
 					# ***DEBUG***
 					#print(range_dates)
-				if opdict['opcode'] in opcode_end_list and not in_range:
+				if opdict['opcode'] in opcode_end_list and (not in_range or (in_range and not(in_start or in_end))):
+				# Not elif because trip opcodes must go there too
+				# (not in_start and not in_end) because we want to catch trips with partial departure info
 					in_start = False
+					if in_range and not(in_start or in_end): #We must complete previous trip
+						#print(opdict)
+						range_dates[current_expo][current_offset][0] = opdict['date']
 					end_date = opdict['date']
 					if title not in range_dates:
 						range_dates[title] = [['', end_date]]

@@ -57,7 +57,7 @@ def get_list_from_html(field):
 #def extract_expositions(json, field_dict, csvwriter):
 def get_expo_title_other(record):
 	"""From a given exhibition raw field, extract title and the rest.
-	Returns {'title':[string], 'other':[string]} or None if no match"""
+	Returns {'title':`string`, 'other':`string`} or None if no match"""
 	regex_title_other = re.compile(r'(.*)\s*:\s*((?:.*?(?:,| :)\s*){2}.*[0-9]{4})', flags=re.S)
 	regex_title_other_fallback = re.compile(r'(.*)\s*(?::|,)\s+(.* ?[0-9]{4})', flags=re.S)
 	m = regex_title_other.match(record)
@@ -71,7 +71,7 @@ def get_expo_title_other(record):
 def get_expo_place_time(placeTimeList):
 	"""From a placeTimeList (aka 'other' field from get_expo_title_other),
 	extract a list of places and times.
-	Returns a list of {'place':[string], 'time':[string]}.
+	Returns a list of {'place':`string`, 'time':`string`}.
 	/!\\ Elements splitting is distinct from place_time matching, therefore
 	some elements in the list can be None (no match at all). Also, keep in mind
 	that this is partial matching (ie place or time can be '')"""
@@ -90,7 +90,7 @@ def get_expo_place_time(placeTimeList):
 def get_town_museum(place):
 	"""From a place (aka 'place' field from get_expo_place_time) extract
 	institution name and town.
-	Returns {'town':[string], 'museum':[string]} or None if no match."""
+	Returns {'town':̀`string`, 'museum':`string`} or None if no match."""
 	regex_museum_town = re.compile(r"(.+?),\s*([\w\-']+\s*(?:\(.+?\))?)$")
 	regex_town_museum = re.compile(r"([\w\-']+\s*(?:\(.+?\))?(?:,\s+[A-Z]{2})?),\s*(.+?)$")
 	regex_town_museum_fallback = re.compile(r"([\w\-']+,?\s+[\w\-']+(?:\s+\(.+?\))?),\s*(.+?)$")
