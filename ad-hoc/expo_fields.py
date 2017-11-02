@@ -7,6 +7,9 @@ from get_html_list import *
 # /!\ This code is **TAB-INDENTED** /!\
 
 def extract_date(date_field):
+	"""Extract date from given date_field (aka 'time' field from get_expo_place_time).
+	Returns [[start_year, start_month, start_day], [end_year, end_month, end_day]] or None if no match.
+	"""
 	regex_date = re.compile(r'(?:(?:([0-9]{1,2})(?:er)?\s*)?(?:([\w^\d]+?)\.?\s*)?([0-9]{4})?\s*[\-–]\s*)?(?:([0-9]{1,2})(?:er)?\s*)?(?:([\w^\d]+?)\.?\s*)?([0-9]{4})')
 	regex_date_fallback = re.compile('.*([0-9]{4})')
 	month2number = ('janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre')
@@ -42,6 +45,7 @@ def extract_date(date_field):
 			return None
 
 def get_list_from_html(field):
+	"""Convert an html list into a python list."""
 	regex_item = re.compile('<li>(.*?)<\/li>', flags=re.S)
 	tab = regex_item.split(field)
 	new_tab = []
@@ -52,6 +56,8 @@ def get_list_from_html(field):
 
 #def extract_expositions(json, field_dict, csvwriter):
 def get_expo_title_other(record):
+	"""From a given exhibition raw field, extract title and the rest.
+	Returns {'title':[string], 'other':[string]} or None if no match"""
 	regex_title_other = re.compile(r'(.*)\s*:\s*((?:.*?(?:,| :)\s*){2}.*[0-9]{4})', flags=re.S)
 	regex_title_other_fallback = re.compile(r'(.*)\s*(?::|,)\s+(.* ?[0-9]{4})', flags=re.S)
 	m = regex_title_other.match(record)
@@ -63,6 +69,12 @@ def get_expo_title_other(record):
 	'other':m.group(2).strip() if m.group(2) is not None else None}
 
 def get_expo_place_time(placeTimeList):
+	"""From a placeTimeList (aka 'other' field from get_expo_title_other),
+	extract a list of places and times.
+	Returns a list of {'place':[string], 'time':[string]}.
+	/!\\ Elements splitting is distinct from place_time matching, therefore
+	some elements in the list can be None (no match at all). Also, keep in mind
+	that this is partial matching (ie place or time can be '')"""
 	regex_place_time = re.compile(r'(?:(.*)(?:,\s+|\s+:\s+))?(.*[0-9]{4})?')
 	place_time_list = placeTimeList.split('//')
 	rslt = []
@@ -76,6 +88,9 @@ def get_expo_place_time(placeTimeList):
 	return rslt
 
 def get_town_museum(place):
+	"""From a place (aka 'place' field from get_expo_place_time) extract
+	institution name and town.
+	Returns {'town':[string], 'museum':[string]} or None if no match."""
 	regex_museum_town = re.compile(r"(.+?),\s*([\w\-']+\s*(?:\(.+?\))?)$")
 	regex_town_museum = re.compile(r"([\w\-']+\s*(?:\(.+?\))?(?:,\s+[A-Z]{2})?),\s*(.+?)$")
 	regex_town_museum_fallback = re.compile(r"([\w\-']+,?\s+[\w\-']+(?:\s+\(.+?\))?),\s*(.+?)$")
