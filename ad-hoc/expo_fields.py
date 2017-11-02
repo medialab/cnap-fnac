@@ -7,7 +7,7 @@ from get_html_list import *
 # /!\ This code is **TAB-INDENTED** /!\
 
 def extract_date(date_field):
-	regex_date = re.compile(r'(?:(?:([0-9]{1,2})(?:er)?\s*)?(?:([\w^\d]+?)\.?\s*)?([0-9]{4})?\s*[\\-–]\s*)?(?:([0-9]{1,2})(?:er)?\s*)?(?:([\w^\d]+?)\.?\s*)?([0-9]{4})')
+	regex_date = re.compile(r'(?:(?:([0-9]{1,2})(?:er)?\s*)?(?:([\w^\d]+?)\.?\s*)?([0-9]{4})?\s*[\-–]\s*)?(?:([0-9]{1,2})(?:er)?\s*)?(?:([\w^\d]+?)\.?\s*)?([0-9]{4})')
 	regex_date_fallback = re.compile('.*([0-9]{4})')
 	month2number = ('janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre')
 	abbr2number = ('janv', 'fév', 'mars', 'avril', 'mai', 'juin', 'juil', 'août', 'sept', 'oct' 'nov', 'déc')
@@ -33,7 +33,7 @@ def extract_date(date_field):
 		end_month = end_month if len(end_month) > 1 else '0'+end_month
 		start_month = start_month if len(start_month) > 1 else '0'+start_month
 		#print(start_year+'-'+start_month+'-'+start_day, end_year+'-'+end_month+'-'+end_day)
-		return [(start_year, start_month, start_day), (end_year, end_month, end_day)]
+		return [[start_year, start_month, start_day], [end_year, end_month, end_day]]
 	else:
 		m = regex_date_fallback.match(date_field)
 		if m:
